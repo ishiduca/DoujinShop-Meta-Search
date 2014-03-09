@@ -3,7 +3,7 @@ use strict;
 use utf8;
 use Carp ();
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use parent qw(Tatsumaki::Handler);
 __PACKAGE__->asynchronous(1);
@@ -79,7 +79,12 @@ sub get {
 
     $clients{$service}->request(@params => $self->async_cb(sub {
         $self->on_response($service, \@params, @_, sub {
-            $memd->set($id, $_[0], $expiration_time);
+            #$memd->set($id, $_[0], $expiration_time);
+            $memd->set($id, +{
+                service  => $service,
+                request  => \@params,
+                response => $_[0]
+            }, $expiration_time);
             Carp::carp qq([Cache::Memcached::Fast] set result - "$id");
         });
     }));
@@ -100,17 +105,18 @@ sub on_response {
 
         $clients{melon}->request(@{$params}, $self->async_cb(sub {
             Carp::carp qq(DoujinShop::Meta::Melonbooks] get response on Re request);
-use Data::Dumper;
-warn qq(\t$_[0]);
-warn Dumper $_[1];
-warn Dumper $_[2];
             $self->on_response($service, $params, @_, $cb);
         }));
         return ;
     }
 
     Carp::carp qq([DoujinShop::Meta::*] "$service" send response);
-    $self->finish($result);
+    #$self->finish($result);
+    $self->finish({
+        service  => $service,
+        request  => $params,
+        response => $result,
+    });
 
     $cb->($result);
 }

@@ -159,13 +159,13 @@
 
             m.storage.save()
 
-			function search (id, cb) {
-				m.results.forEach(function (res) {
-					res.response.forEach(function (response) {
-						id === response.urlOfTitle && cb(response)
-					})
-				})
-			}
+            function search (id, cb) {
+                m.results.forEach(function (res) {
+                    res.response.forEach(function (response) {
+                        id === response.urlOfTitle && cb(response)
+                    })
+                })
+            }
         }
 
       , highlight: function (ev, count, id, c, i) {

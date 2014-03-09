@@ -59,11 +59,7 @@
 
         xhr.onerror = function (err) { that.onResponse(err, null) }
         xhr.onload  = function () {
-            that.onResponse(null, {
-                response: JSON.parse(xhr.responseText)
-              , service: service
-              , request: arg
-            })
+            that.onResponse(null, JSON.parse(xhr.responseText))
         }
 
         xhr.open(this.method, uri, true)
@@ -104,7 +100,7 @@
     function Rate (opt) {
         this.rate    = []; this.rate.length = opt.length
         this.id      = opt.id
-		this.onHover = 0
+        this.onHover = 0
         this.stared  = opt.stared
     }
 
