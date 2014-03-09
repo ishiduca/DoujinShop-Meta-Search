@@ -1,0 +1,23 @@
+{
+  "name": "ractive-events-hover",
+  "version": "0.1.0",
+  "author": "Rich Harris",
+  "main": "Ractive-events-hover.js",
+  "ignore": [
+    "**/.*",
+    "src",
+    "test",
+    "Gruntfile.js"
+  ],
+  "homepage": "https://github.com/RactiveJS/Ractive-events-hover",
+  "_release": "0.1.0",
+  "_resolution": {
+    "type": "version",
+    "tag": "v0.1.0",
+    "commit": "ba3754ed4f85968d310f03a3d2ab8b3fb508358a"
+  },
+  "_source": "git://github.com/RactiveJS/Ractive-events-hover.git",
+  "_target": "~0.1.0",
+  "_originalSource": "Ractive-events-hover",
+  "_direct": true
+}

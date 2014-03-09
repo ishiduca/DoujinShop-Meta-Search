@@ -1,0 +1,120 @@
+% my $title   = 'DoujinShop::Meta::Search';
+% my $version = 'v0.01';
+% my @css = qw(
+%     /static/bower_components/normalize-css/normalize.css
+%     /static/bower_components/font-awesome/css/font-awesome.min.css
+%     /static/css/app.css
+% );
+% my @scripts = qw(
+%     /static/bower_components/ractive/Ractive.js
+%     /static/bower_components/Ractive-events-hover/Ractive-events-hover.min.js
+%     /static/js/lib.js
+% );
+% my $appjs = '/static/js/app.js';
+<!doctype html>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="keywords" content="メタ検索,同人誌,とらのあな,メロンブックス,ComicZin,psgi,Tatusmaki" />
+<meta name="description" content="同人誌情報のメタ検索サービスです。とらのあな、メロンブックス、ComicZinの検索サービスを横断し、その結果をリスト表示します" />
+% for my $css (@css) {
+<link rel="stylesheet" type="text/css" href="<%= $css %>" />
+% }
+% for my $script (@scripts) {
+<script type="application/javascript" src="<%= $script %>"></script>
+% }
+<title><%= $title %> <%= $version %></title>
+</head>
+<body>
+<header id="l-header">
+    <h1><i class="fa fa-search-plus"></i><%= $title %></h1>
+    <h4><%= $version %></h4>
+</header>
+
+<main id="l-main">
+    <section id="l-notify">
+    <script id="t-notify" type="text/ractive">
+        <div id="notify"
+            class="{{isMode}} {{!! isDisplayNone ? 'is-display-none' : ''}}"
+            on-click="disp"
+        >{{message}}</div>
+    </script>
+    </section>
+
+    <section id="l-search-form">
+    <script id="t-search-form" type="text/ractive">
+        <form action="javascript:void(0);" on-submit="search">
+            <input type="search"
+                id="command-line"
+                class="input-u-1"
+                value="{{command}}"
+                placeholder="input command..."
+                required
+            />
+        </form>
+    </script>
+    </section>
+
+    <section id="l-contain">
+    <script  id="t-contain" type="text/ractive">
+        <section id="l-results">
+            <h2>results</h2>
+            <div class="l-result">
+                {{#results:i}}
+                    <h4 on-click="showDisplay:{{i}}">
+                        {{service}}:: {{ JSON.stringify(request)}} ({{response.length}})
+                    </h4>
+                    <div class="response" style="{{!! isDisplayNone ? 'display: none;' : ''}}">
+                    {{#response:c}}
+                        {{> res}}
+                    {{/response}}
+                    {{^response}}
+                        <h4>no results...</h4>
+                    {{/response}}
+                    </div>
+                {{/results}}
+            </div>
+        </section>
+        <section id="l-favorites">
+            <h2>favorites ({{ len(favorites) }})</h2>
+            <div class="l-favorite">
+                {{# toList(favorites):i }}
+                    {{> res}}
+                {{/ () }}
+            </div>
+        </section>
+
+
+<!-- {{>res}} -->
+<div class="item {{!! stars.stared ? 'is-favorite' : ''}}">
+    <a href="{{urlOfTitle}}" target="_blank"><img src="{{srcOfThumbnail}}" /></a>
+    <h5><a href="{{urlOfTitle}}" target="_blank">{{title}}</a></h5>
+    {{#urlOfCircle}}
+        <h5><a href="{{urlOfTitle}}" target="_blank">{{circle}}</a></h5>
+    {{/urlOfCircle}}
+    {{^urlOfCircle}}
+        <h5>{{circle}}</h5>
+    {{/urlOfCircle}}
+    <div class="item-rate">
+    {{ #star.rate:count }}
+        <span class="star {{ count < ../../onHover ? 'is-hover' : ''}} {{ count < ../../stared ? 'is-stared' : ''}}"
+            on-hover="highlight:{{count}}, {{ ../../../urlOfTitle }},{{c}}, {{i}}"
+            on-click="select:{{count}}, {{ ../../../urlOfTitle }}"
+        >
+            <i class="fa {{ count < ../../stared ? 'fa-star' : 'fa-star-o' }} fa-lg"></i>
+        </span>
+    {{ /star.rate }}
+    [<span class="remove-star"
+        on-click="select:-1, {{urlOfTitle}}"><i class="fa fa-times fa-lg"></i></span>]
+    </div>
+</div>
+<!-- {{/res}} -->
+    </script>
+    </section>
+</main>
+
+<footer id="l-footer"></footer>
+
+<script type="application/javascript" src="<%= $appjs %>"></script>
+
+</body>

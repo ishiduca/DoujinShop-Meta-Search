@@ -1,0 +1,48 @@
+<!doctype html>
+<head>
+<meta charset="utf8" />
+<style>
+#stars {
+    cursor : pointer;
+}
+.is-hover {
+    color : #55ff55 !important;
+}
+.is-stared {
+    color: #3355ff;
+}
+</style>
+<title>Star</title>
+<script src="../bower_components/ractive/Ractive.js"></script>
+<script src="../bower_components/Ractive-events-hover/Ractive-events-hover.min.js"></script>
+<body>
+<div id="qunit"></div>
+
+<div id="qunit-fixture">
+    <div id="stars">
+    <script id="t-stars" type="text/ractive">
+        {{# rate:i }}
+            <span
+                class="star {{ i < now ? 'is-hover' : ''}} {{ i < stars ? 'is-stared' : ''}}"
+                on-hover="hover:{{i}}"
+                on-click="stared:{{i}}"
+            >★</span>
+        {{/ rate }}
+        <span
+            class="rmStar"
+            on-click="stared:-1"
+        >[x]</span>
+    </script>
+    </div>
+</div>
+
+
+<script src="./star.js"></script>
+<script>
+;(function (global) {
+    'use strict'
+
+})(this.self)
+
+</script>
+</body>

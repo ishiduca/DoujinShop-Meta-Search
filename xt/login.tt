@@ -1,0 +1,23 @@
+use strict;
+use warnings;
+use Test::More;
+use DoujinShop::Meta::Melonbooks;
+use AE;
+use Data::Dumper;
+
+my $client = DoujinShop::Meta::Melonbooks->new(verbose => 1);
+my $cv = AE::cv;
+
+$client->login(sub {
+    my($err, $hdrs) = @_;
+
+    ok ! $err, qq(error: "$err");
+    is $hdrs->{URL}, 'http://shop.melonbooks.co.jp/shop/top/main', $hdrs->{URL};
+    ok $client->jar, Dumper $client->jar;
+
+    $cv->send;
+});
+
+$cv->recv;
+
+done_testing;

@@ -1,0 +1,14 @@
+{
+  "name": "DoujinShop::Meta::Search",
+  "version": "0.0.0",
+  "dependencies": {
+    "normalize-css": "~3.0.0",
+    "ractive": "~0.3.9",
+    "Ractive-events-hover": "~0.1.0",
+    "font-awesome": "~4.0.3"
+  },
+  "devDependencies": {
+    "qunit": "~1.14.0",
+    "qunit-tap": "~1.4.1"
+  }
+}
