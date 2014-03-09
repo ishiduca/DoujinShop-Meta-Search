@@ -12,28 +12,34 @@
 
     function onResponse (err, res) {
         if (err) {
-            console.log(err.stack)
+            DEBUG && console.log(err.stack)
             notif(err.toString(), 'is-error')
             return
         }
 
-        res.response = res.response.map(function (response) {
-            var id  = response.urlOfTitle
-            var fav = m.favorites[ id ]
+        try {
+            res.response = res.response.map(function (response) {
+                var id  = response.urlOfTitle
+                var fav = m.favorites[ id ]
 
-            if (fav) return fav
+                if (fav) return fav
 
-            response.star = new Rate({
-                id:     id
-              , length: 5
-              , stared: 0
+                response.star = new Rate({
+                    id:     id
+                  , length: 5
+                  , stared: 0
+                })
+
+                return response
             })
 
-            return response
-        })
+            res.isDisplayNone = false /* required */
+            m.results.unshift(res)
 
-        res.isDisplayNone = false /* required */
-        m.results.unshift(res)
+        } catch (err) {
+            DEBUG && console.log(err.stack)
+            notif(err.toString(), 'is-error')
+        }
     }
 
     v.requests = {
@@ -96,6 +102,7 @@
         try {
             m.cmds.parse(this.get('command'))
         } catch (err) {
+            DEBUG && console.log(err.stack)
             notif(err.toString(), 'is-error')
         }
 

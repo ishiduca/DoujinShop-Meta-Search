@@ -59,7 +59,11 @@
 
         xhr.onerror = function (err) { that.onResponse(err, null) }
         xhr.onload  = function () {
-            that.onResponse(null, JSON.parse(xhr.responseText))
+            try {
+                that.onResponse(null, JSON.parse(xhr.responseText))
+            } catch (err) {
+                that.onResponse(err, null)
+            }
         }
 
         xhr.open(this.method, uri, true)
