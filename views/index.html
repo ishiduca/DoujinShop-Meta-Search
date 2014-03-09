@@ -1,5 +1,5 @@
 % my $title   = 'DoujinShop::Meta::Search';
-% my $version = 'v0.02';
+% my $version = 'v0.021';
 % my @css = qw(
 %     /static/bower_components/normalize-css/normalize.css
 %     /static/bower_components/font-awesome/css/font-awesome.min.css
@@ -90,7 +90,7 @@
     <a href="{{urlOfTitle}}" target="_blank"><img src="{{srcOfThumbnail}}" /></a>
     <h5><a href="{{urlOfTitle}}" target="_blank">{{title}}</a></h5>
     {{#urlOfCircle}}
-        <h5><a href="{{urlOfTitle}}" target="_blank">{{circle}}</a></h5>
+        <h5><a href="{{urlOfCircle}}" target="_blank">{{circle}}</a></h5>
     {{/urlOfCircle}}
     {{^urlOfCircle}}
         <h5>{{circle}}</h5>
