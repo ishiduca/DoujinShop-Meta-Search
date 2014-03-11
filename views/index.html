@@ -55,7 +55,7 @@
             {{#results:i}}
             <dt
                 on-click="display:{{i}}"
-            ><i class="fa {{ isDisplayNone ? 'fa-minus-square' : 'fa-plus-square' }} {{service}}"></i>
+            ><i class="fa {{ isDisplayNone ? 'fa-minus-square' : 'fa-plus-square' }}"></i>
                 {{service}}: {{ JSON.stringify(request)}} {{ response.length }}
             </dt>
             <dd class="{{ isDisplayNone ? 'is-display-none' : '' }}">
