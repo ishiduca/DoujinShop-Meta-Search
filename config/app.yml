@@ -1,0 +1,11 @@
+title: DoujinShop::Meta::Search
+version: v0.03
+css:
+  - /static/bower_components/normalize-css/normalize.css
+  - /static/bower_components/font-awesome/css/font-awesome.min.css
+  - /static/css/app.css
+scripts:
+  - /static/bower_components/ractive/Ractive.js
+  - /static/bower_components/Ractive-events-hover/Ractive-events-hover.min.js
+  - /static/js/lib.js
+appjs: /static/js/app.ws.js

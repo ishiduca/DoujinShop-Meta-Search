@@ -1,16 +1,8 @@
-% my $title   = 'DoujinShop::Meta::Search';
-% my $version = 'v0.021';
-% my @css = qw(
-%     /static/bower_components/normalize-css/normalize.css
-%     /static/bower_components/font-awesome/css/font-awesome.min.css
-%     /static/css/app.css
-% );
-% my @scripts = qw(
-%     /static/bower_components/ractive/Ractive.js
-%     /static/bower_components/Ractive-events-hover/Ractive-events-hover.min.js
-%     /static/js/lib.js
-% );
-% my $appjs = '/static/js/app.js';
+% my $title   = $_[0]->{title};
+% my $version = $_[0]->{version};
+% my @css     = @{$_[0]->{css}};
+% my @scripts = @{$_[0]->{scripts}};
+% my $appjs   = $_[0]->{appjs};
 <!doctype html>
 <head>
 <meta charset="utf-8" />
@@ -26,95 +18,102 @@
 <title><%= $title %> <%= $version %></title>
 </head>
 <body>
+
 <header id="l-header">
-    <h1><i class="fa fa-search-plus"></i><%= $title %></h1>
+    <h1><%= $title %></h1>
     <h4><%= $version %></h4>
 </header>
 
+<section id="l-notify">
+<script  id="t-notify" type="text/ractive">
+    <div id="notify"
+        class="{{isMode}} {{!! isDisplayNone ? 'is-display-none' : '' }}"
+        on-click="disp"
+    >{{message}}</div>
+</script>
+</section>
+
+<section id="l-search-form">
+<script  id="t-search-form" type="text/ractive">
+    <form action="javascript:void(0);" on-submit="search:{{command}}">
+        <input type="search"
+            id="command-line"
+            class="input-u-1"
+            value="{{command}}"
+            placeholder="input command..."
+            required
+        />
+    </form>
+</script>
+</section>
+
 <main id="l-main">
-    <section id="l-notify">
-    <script id="t-notify" type="text/ractive">
-        <div id="notify"
-            class="{{isMode}} {{!! isDisplayNone ? 'is-display-none' : ''}}"
-            on-click="disp"
-        >{{message}}</div>
-    </script>
-    </section>
-
-    <section id="l-search-form">
-    <script id="t-search-form" type="text/ractive">
-        <form action="javascript:void(0);" on-submit="search">
-            <input type="search"
-                id="command-line"
-                class="input-u-1"
-                value="{{command}}"
-                placeholder="input command..."
-                required
-            />
-        </form>
-    </script>
-    </section>
-
-    <section id="l-contain">
-    <script  id="t-contain" type="text/ractive">
-        <section id="l-results">
-            <h2>results</h2>
-            <div class="l-result">
-                {{#results:i}}
-                    <h4 on-click="showDisplay:{{i}}">
-                        {{service}}:: {{ JSON.stringify(request)}} ({{response.length}})
-                    </h4>
-                    <div class="response" style="{{!! isDisplayNone ? 'display: none;' : ''}}">
-                    {{#response:c}}
-                        {{> res}}
-                    {{/response}}
-                    {{^response}}
-                        <h4>no results...</h4>
-                    {{/response}}
-                    </div>
-                {{/results}}
-            </div>
-        </section>
-        <section id="l-favorites">
-            <h2>favorites ({{ len(favorites) }})</h2>
-            <div class="l-favorite">
-                {{# toList(favorites):i }}
+<script id="t-main" type="text/ractive">
+    <section id="l-results">
+        <h2>results</h2>
+        <dl>
+            {{#results:i}}
+            <dt
+                on-click="display:{{i}}"
+            ><i class="fa {{ isDisplayNone ? 'fa-minus-square' : 'fa-plus-square' }} {{service}}"></i>
+                {{service}}: {{ JSON.stringify(request)}} {{ response.length }}
+            </dt>
+            <dd class="{{ isDisplayNone ? 'is-display-none' : '' }}">
+                {{#response:c}}
                     {{> res}}
-                {{/ () }}
-            </div>
-        </section>
+                {{/response}}
+                {{^response}}
+                    <h5>no result...</h5>
+                {{/response}}
+            </dd>
+            {{/results}}
+            {{^results}}
+            <h4>まだだよ</h4>
+            {{/results}}
+        </dl>
+    </section>
+    <section id="l-favorites">
+        <h2>favorites ({{ len(favorites) }})</h2>
+        {{# filter(favorites):i }}
+            {{> res}}
+        {{/ () }}
+        {{^ filter(favorites) }}
+            <h4>no favorites...</h4>
+        {{/ () }}
+    </section>
 
-
-<!-- {{>res}} -->
-<div class="item {{!! stars.stared ? 'is-favorite' : ''}}">
+<!-- {{> res}} -->
+<div class="item">
     <a href="{{urlOfTitle}}" target="_blank"><img src="{{srcOfThumbnail}}" /></a>
     <h5><a href="{{urlOfTitle}}" target="_blank">{{title}}</a></h5>
     {{#urlOfCircle}}
-        <h5><a href="{{urlOfCircle}}" target="_blank">{{circle}}</a></h5>
+    <h5><a href="{{urlOfCircle}}" target="_blank">{{circle}}</a></h5>
     {{/urlOfCircle}}
     {{^urlOfCircle}}
-        <h5>{{circle}}</h5>
+    <h5>{{circle}}</h5>
     {{/urlOfCircle}}
     <div class="item-rate">
     {{ #star.rate:count }}
-        <span class="star {{ count < ../../onHover ? 'is-hover' : ''}} {{ count < ../../stared ? 'is-stared' : ''}}"
-            on-hover="highlight:{{count}}, {{ ../../../urlOfTitle }},{{c}}, {{i}}"
-            on-click="select:{{count}}, {{ ../../../urlOfTitle }}"
-        >
-            <i class="fa {{ count < ../../stared ? 'fa-star' : 'fa-star-o' }} fa-lg"></i>
-        </span>
+        <span
+            on-hover="highlight:{{count}},{{../../../urlOfTitle}},{{c}},{{i}}"
+            on-click="select:{{count}},{{ ../../../urlOfTitle}}"
+            class="star {{ count < ../../onHover ? 'is-hover' : ''}} {{ count < ../../stared ? 'is-stared' : ''}}"
+        ><i
+            class="fa {{ count < ../../stared ? 'fa-star' : 'fa-star-o' }} fa-lg"
+        ></i></span>
     {{ /star.rate }}
-    [<span class="remove-star"
-        on-click="select:-1, {{urlOfTitle}}"><i class="fa fa-times fa-lg"></i></span>]
+        :
+        <span
+            class="remove-star"
+            on-click="select:-1,{{urlOfTitle}}"
+        ><i class="fa fa-trash-o fa-lg"></i></span>
     </div>
 </div>
-<!-- {{/res}} -->
-    </script>
-    </section>
+<!-- {{/ res}} -->
+</script>
 </main>
 
 <footer id="l-footer"></footer>
 
 <script type="application/javascript" src="<%= $appjs %>"></script>
-
 </body>

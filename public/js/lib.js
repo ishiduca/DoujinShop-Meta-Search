@@ -71,6 +71,43 @@
     }
 
 
+    function WebSocketWrapper (listeners, _opt) {
+        _opt || (_opt = {})
+        var onclose = listeners.onclose || function () {}
+        var that    = this
+
+        listeners.onclose = function () {
+            onclose()
+            setTimeout(function () { that.setup() }, that.retryInterval)
+        }
+
+        var reg = /^(?:http|https):\/\/([^\/]+)?\//;
+        this.url = 'ws://' + window.location.href.match(reg)[1] + '/_hippie/ws'
+        this.listeners     = listeners
+        this.retryConnect  = _opt.retryConnect || 10
+        this.retryInterval = _opt.retryInterval || 2500
+
+        this.setup()
+    }
+
+    WebSocketWrapper.prototype.setup = function () {
+        if ((this.retryConnect -= 1) >= 0) {
+            this.ws = new WebSocket(this.url)
+            for (var type in this.listeners) {
+                if (this.listeners.hasOwnProperty(type))
+                    this.ws[type] = this.listeners[type]
+            }
+        }
+    }
+
+    WebSocketWrapper.prototype.send = function (mes) {
+        this.ws.send(
+            Object.prototype.toString.apply(mes) === '[object Object]'
+                ? JSON.stringify(mes) : mes
+        )
+    }
+
+
     function LocalStorageWrapper (opt) {
         if (! global.localStorage) {
             throw new Error([
@@ -109,6 +146,7 @@
     }
 
     global.LocalStorageWrapper = LocalStorageWrapper
+    global.WebSocketWrapper    = WebSocketWrapper
     global.CommandLines = CommandLines
     global.Request      = Request
     global.Rate         = Rate   

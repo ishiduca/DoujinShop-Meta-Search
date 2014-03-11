@@ -19,7 +19,7 @@ sub prepare_app {
 
 sub call {
     my($self, $env) = @_;
-    $env->{'psigx.memd'} = $self->client;
+    $env->{'psgix.memd'} = $self->client;
     $self->app->($env);
 }
 

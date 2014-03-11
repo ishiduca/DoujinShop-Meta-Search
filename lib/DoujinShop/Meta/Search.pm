@@ -67,7 +67,7 @@ sub get {
     my @params = create_params( $service, $key, $val);
 
     my $env   = $self->request->env;
-    my $memd  = $env->{'psigx.memd'};
+    my $memd  = $env->{'psgix.memd'};
     my $id    = join '=', @params;
     my $result = $memd->get($id);
 
