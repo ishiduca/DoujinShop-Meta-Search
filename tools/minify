@@ -1,0 +1,63 @@
+#!/usr/bin/env node
+'use strict'
+
+var path = require('path')
+var ansi = require('ansi-color')
+var minimist = require('minimist')
+var compressor = require('node-minify')
+
+var opt = {}
+opt.Minimist = {
+    alias: {
+        h: 'help'
+      , O: 'fileOut'
+      , t: 'type'
+    }
+  , default: {
+        type: 'gcc'
+    }
+}
+
+var args = minimist(process.argv.slice(2), opt.Minimist)
+
+var usage = 'usage: ./tools/minify -O output_file_path input_file_path ...'
+
+args.help && (function () {
+	console.log(usage)
+	process.exit(0)
+})()
+
+args.fileOut ||
+  onError(new Error('[output_file_path_error] "-O" or "--fileOut" not found'))
+
+args._.length ||
+  onError(new Error('[input_file_path_error] input js files not found'))
+
+var fileOut = resolve(args.fileOut); delete args.fileOut
+var fileIn  = args._.map(resolve);   delete args._
+
+opt.Minify = {
+    type:    args.type
+  , fileIn:  fileIn
+  , fileOut: fileOut
+  , callback: function (err, min) {
+        err ? onError(err) : onMinify(fileOut, min)
+    }
+}
+
+new compressor.minify(opt.Minify)
+
+
+function onMinify (fileOut, min) {
+    console.log( ansi.set(fileOut, 'green')
+               + ' -- '
+               + ansi.set(min, 'white_bg+black'))
+    process.exit(0)
+}
+
+function onError (err) {
+    console.error(ansi.set(err, 'red') + '\n' + usage)
+    process.exit(1)
+}
+
+function resolve (p) { return path.join(process.env.PWD, p) }
