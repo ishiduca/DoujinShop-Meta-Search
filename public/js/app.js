@@ -4,7 +4,7 @@
     if (! global.console) global.console = {}
     if (! global.console.log) global.console.log = function () {}
 
-    var DEBUG = /dev_mode=1/.test(global.location.search);
+    var DEBUG = /dev_mode=1/.test(global.location.search)
 
     var m  = {}
     var vm = {}
@@ -23,16 +23,6 @@
         this.set('message', '')
         this.set('isMode',  '')
     })
-
-    function notif (message, isMode) {
-        var typeis = Object.prototype.toString.apply(message)
-        if (typeis === '[object Object]') message = JSON.stringify(message)
-        if (typeis === '[object Error]')  message = message.toString()
-
-        vm.notify.set('isDisplayNone', false)
-        vm.notify.set('message', message)
-        vm.notify.set('isMode', isMode || 'is-info')
-    }
 
 
     m.router = new CommandLines()
@@ -61,7 +51,6 @@
         this.set('command', '')
     })
 
-
     m.ws = new WebSocketWrapper({
         onerror: function (err) {
             DEBUG && console.log(err.stack)
@@ -88,21 +77,7 @@
             for (var i = 0, len = data.response.length; i < len; i++) {
                 var id  = data.response[i].urlOfTitle
                 var fav = m.favorites[id]
-
-                if (fav) {
-                    data.response[i].star = new Rate({
-                        length: 5
-                      , id: id
-                      , stared: fav.star.stared
-                    })
-                } else {
-                    data.response[i].star = new Rate({
-                        length: 5
-                      , id: id
-                      , stared: 0
-                    })
-                }
-
+                data.response[i].star = fav ? rating(id, fav.star.stared) : rating(id, 0)
                 mess.push(data.response[i].title)
             }
 
@@ -114,7 +89,14 @@
     })
 
 
-    m.lStorage  = new LocalStorageWrapper({key: 'DoujinShop::Meta::Search::dev'})
+    try {
+        m.lStorage  = new LocalStorageWrapper({key: 'DoujinShop::Meta::Search::dev'})
+    } catch (err) {
+        DEBUG && console.log(err.stack)
+        notif(err, 'is-error')
+    }
+    m.lStorage || (m.lStorage = {})
+
     m.favorites = m.lStorage.getStorage()
     m.results   = []
 
@@ -167,19 +149,11 @@
 
             if (count > 0) {
                 if (m.favorites[id]) {
-                    m.favorites[id].star = new Rate({
-                        id: id
-                      , length: 5
-                      , stared: count
-                    })
+                    m.favorites[id].star = rating(id, count)
                 }
 
                 search(id, function (response) {
-                    response.star = new Rate({
-                        id: id
-                      , length: 5
-                      , stared: count
-                    })
+                    response.star = rating(id, count)
                     m.favorites[id] || (m.favorites[id] = response)
                 })
 
@@ -188,11 +162,7 @@
 
             else {
                 search(id, function (response) {
-                    response.star = new Rate({
-                        id: id
-                      , length: 5
-                      , stared: 0
-                    })
+                    response.star = rating(id, 0)
                 })
                 delete m.favorites[id]
 
@@ -206,5 +176,24 @@
             DEBUG && console.log('[LocalStorageWrapper.save]')
         }
     })
+
+
+    function notif (message, isMode) {
+        var typeis = Object.prototype.toString.apply(message)
+        if (typeis === '[object Object]') message = JSON.stringify(message)
+        if (typeis === '[object Error]')  message = message.toString()
+
+        vm.notify.set('isDisplayNone', false)
+        vm.notify.set('message', message)
+        vm.notify.set('isMode', isMode || 'is-info')
+    }
+
+    function rating (id, optStared) {
+        return new Rate({
+            id: id
+          , stared: optStared || 0
+          , length: 5
+        })
+    }
 
 })(this.self)
