@@ -1,10 +1,13 @@
 #!/usr/bin/env node
 'use strict'
 
-var path = require('path')
-var ansi = require('ansi-color')
-var minimist = require('minimist')
-var compressor = require('node-minify')
+var path       = require('path')
+var ansi       = require('ansi-color')
+var minimist   = require('minimist')
+var Valid      = require('js-valid')
+var Compressor = require('node-minify')
+
+var usage = 'usage: ./tools/minify -O output_file_path input_file_path ...'
 
 var opt = {}
 opt.Minimist = {
@@ -17,35 +20,52 @@ opt.Minimist = {
         type: 'gcc'
     }
 }
+opt.validator = {
+    help:  Valid.Types.isBool
+  , type:  Valid.Types.isString
+  , fileOut: {
+        type: Valid.Types.isString
+      , required: true
+      , validate: resolve
+    }
+  , _: {
+        type: Valid.Types.isArray
+      , required: true
+      , validate: resolve
+   }
+}
 
-var args = minimist(process.argv.slice(2), opt.Minimist)
+var valid = new Valid(opt.validator)
 
-var usage = 'usage: ./tools/minify -O output_file_path input_file_path ...'
+try {
+    var args = minimist(process.argv.slice(2), opt.Minimist)
+    delete args.O
+    delete args.t
+    args = valid.validate(args)
+}
+catch (err) {
+    onError(err)
+    process.exit(1)
+}
 
 args.help && (function () {
-	console.log(usage)
-	process.exit(0)
+    console.log(usage)
+    process.exit(0)
 })()
-
-args.fileOut ||
-  onError(new Error('[output_file_path_error] "-O" or "--fileOut" not found'))
 
 args._.length ||
   onError(new Error('[input_file_path_error] input js files not found'))
 
-var fileOut = resolve(args.fileOut); delete args.fileOut
-var fileIn  = args._.map(resolve);   delete args._
-
 opt.Minify = {
     type:    args.type
-  , fileIn:  fileIn
-  , fileOut: fileOut
+  , fileIn:  args._
+  , fileOut: args.fileOut
   , callback: function (err, min) {
-        err ? onError(err) : onMinify(fileOut, min)
+        err ? onError(err) : onMinify(args.fileOut, min)
     }
 }
 
-new compressor.minify(opt.Minify)
+new Compressor.minify(opt.Minify)
 
 
 function onMinify (fileOut, min) {

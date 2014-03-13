@@ -1,19 +1,13 @@
 {
-  "bin": {
-    "minif": "./bin/minif"
-  },
   "version": "0.0.0",
-  "name": "minif",
-  "author": "ishiduca@gmail.com",
-  "license": "MIT",
-  "main": "./",
+  "name": "minify",
   "dependencies": {
     "ansi-color": "~0.2.1",
     "minimist": "0.0.8",
-    "node-minify": "~0.9.3"
+    "node-minify": "~0.9.3",
+    "js-valid": "https://github.com/ishiduca/js-valid/tarball/master"
   },
   "devDependencies": {
-    "qunit-tap": "~1.4.1",
-    "qunitjs": "~1.10.0"
+    "tape": "~2.10.2"
   }
 }
