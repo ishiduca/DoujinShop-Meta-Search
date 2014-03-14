@@ -1,11 +1,11 @@
 {
-  "version": "0.0.0",
+  "version": "0.0.1",
   "name": "minify",
+  "description": "minify tool using \"Closure Compiler tools(noe-minify)\""
   "dependencies": {
     "ansi-color": "~0.2.1",
-    "minimist": "0.0.8",
     "node-minify": "~0.9.3",
-    "js-valid": "https://github.com/ishiduca/js-valid/tarball/master"
+    "minimist-fire": "https://github.com/ishiduca/node-minimist-fire/tarball/master"
   },
   "devDependencies": {
     "tape": "~2.10.2"

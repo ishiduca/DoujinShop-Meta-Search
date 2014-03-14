@@ -1,83 +1,63 @@
 #!/usr/bin/env node
 'use strict'
 
-var path       = require('path')
-var ansi       = require('ansi-color')
-var minimist   = require('minimist')
-var Valid      = require('js-valid')
+var fire  = require('minimist-fire')
+var ansi  = require('ansi-color')
 var Compressor = require('node-minify')
-
-var usage = 'usage: ./tools/minify -O output_file_path input_file_path ...'
-
-var opt = {}
-opt.Minimist = {
-    alias: {
-        h: 'help'
-      , O: 'fileOut'
+var usage = 'usage: tools/minify input_file ... -O output_js_file'
+var opts  = {
+    usage: ansi.set(usage, 'yellow')
+  , alias: {
+        O: 'fileOut'
+      , u: 'usage'
       , t: 'type'
     }
   , default: {
         type: 'gcc'
     }
-}
-opt.validator = {
-    help:  Valid.Types.isBool
-  , type:  Valid.Types.isString
-  , fileOut: {
-        type: Valid.Types.isString
-      , required: true
-      , validate: resolve
+  , required: ['fileOut', '_']
+  , validate: {
+        fileOut: resolve
+      , _: function (fileIns) {
+            return fileIns.map(resolve)
+        }
+      , callback: function (nll, args) {
+            return function onMin (err, min) {
+                err ? onError(err) : onMinify(args.fileOut, min)
+            }
+        }
     }
-  , _: {
-        type: Valid.Types.isArray
-      , required: true
-      , validate: resolve
-   }
 }
 
-var valid = new Valid(opt.validator)
 
 try {
-    var args = minimist(process.argv.slice(2), opt.Minimist)
-    delete args.O
+    var args = fire(process.argv.slice(2), opts)
+
+    args.fileIn = args._
+
     delete args.t
-    args = valid.validate(args)
-}
-catch (err) {
+    delete args.O
+    delete args.u
+    delete args._
+
+    new Compressor.minify(args)
+
+} catch (err) {
     onError(err)
-    process.exit(1)
 }
-
-args.help && (function () {
-    console.log(usage)
-    process.exit(0)
-})()
-
-args._.length ||
-  onError(new Error('[input_file_path_error] input js files not found'))
-
-opt.Minify = {
-    type:    args.type
-  , fileIn:  args._
-  , fileOut: args.fileOut
-  , callback: function (err, min) {
-        err ? onError(err) : onMinify(args.fileOut, min)
-    }
-}
-
-new Compressor.minify(opt.Minify)
-
 
 function onMinify (fileOut, min) {
-    console.log( ansi.set(fileOut, 'green')
-               + ' -- '
-               + ansi.set(min, 'white_bg+black'))
+    console.log(
+        ansi.set(fileOut, 'green') +
+        ' -- ' +
+        min
+    )
     process.exit(0)
 }
 
 function onError (err) {
-    console.error(ansi.set(err, 'red') + '\n' + usage)
+    console.error(ansi.set(err, 'red'))
     process.exit(1)
 }
 
-function resolve (p) { return path.join(process.env.PWD, p) }
+function resolve (p) { return require('path').join(process.env.PWD, p) }
