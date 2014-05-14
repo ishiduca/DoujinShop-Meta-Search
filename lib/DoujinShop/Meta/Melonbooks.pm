@@ -3,7 +3,8 @@ use strict;
 use utf8;
 use Carp;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
+# 2014-05-14 結果ページにキャンペーンCMのDOMが挿入されたのでparse_bodyのxpathを変更
 
 use Moo;
 use MooX::late;
@@ -120,7 +121,8 @@ sub parse_body {
     my($self, $body) = @_;
     my $home = $self->home;
     my $scraper = scraper {
-        process '/html/body/table/tbody/tr[3]/td[2]/table/tbody/tr[2]/td/div/table/tr', 'trs[]' => scraper {
+        #process '/html/body/table/tbody/tr[3]/td[2]/table/tbody/tr[2]/td/div/table/tr', 'trs[]' => scraper {
+        process '/html/body/table/tbody/tr[4]/td[2]/table/tbody/tr[2]/td/div/table/tr', 'trs[]' => scraper {
             process '//td[2]/table/tr[2]/td/font/a', 'circle' => 'TEXT';
             process '//td[2]/table/tr[2]/td/font/a', 'urlOfCircle' => sub {
                 my $el = shift;
