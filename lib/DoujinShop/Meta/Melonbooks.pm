@@ -3,153 +3,101 @@ use strict;
 use utf8;
 use Carp;
 
-our $VERSION = '0.02';
-# 2014-05-14 結果ページにキャンペーンCMのDOMが挿入されたのでparse_bodyのxpathを変更
+our $VERSION = '0.20';
 
 use Moo;
 use MooX::late;
 use Encode qw(find_encoding);
-use AnyEvent::HTTP;
-use HTTP::Request::Common qw(POST);
+use HTTP::Request::Common qw(GET);
 use List::Util qw(reduce);
 use Web::Scraper;
 
 with qw(DoujinShop::Meta::Role);
 
-has '+home' => (default => 'http://shop.melonbooks.co.jp');
+has '+home' => (default => 'https://www.melonbooks.co.jp');
 has '+enc'  => (default => sub { find_encoding('utf8') });
-has '+request_uri'=> (default => sub { shift->home . '/shop/list' });
+has '+request_uri' => (
+    default => sub { shift->home . '/search/search.php' },
+);
+#https://www.melonbooks.co.jp/search/search.php?mode=search&search_disp=&chara=&orderby=date&disp_number=120&pageno=1&text_type=circle&name=xration&is_end_of_sale%5B%5D=1&is_end_of_sale2=1&category_ids%5B%5D=1&genre=0&co_name=&ci_name=&sale_date_before=&sale_date_after=&price_low=0&price_high=0&category=&type=&start=&end=
+
+#https://www.melonbooks.co.jp/search/search.php?mode=search&search_disp=&chara=&orderby=date&disp_number=120&pageno=1&text_type=title&name=%E3%81%AE%E3%82%A8%E3%83%AD%E3%81%84&is_end_of_sale%5B%5D=1&is_end_of_sale2=1&category_ids%5B%5D=1&genre=0&co_name=&ci_name=&sale_date_before=&sale_date_after=&price_low=0&price_high=0&disp_number=120
 has '+default_request_params' => (
     default => sub {
         +{
-            DA => 'de',
-#            G  => '',  # アイテム
-            E  => 'ON',      # 在庫切れを表示する
-            P  => '30',      # 表示件数 6/10/15/30
-            DS => 'desc',    # 表示形式: 画像あり: desc/画像なし: list
-#            ID => '',        # 商品番号
-#            M  => '',        # サークル/出版
-#            MK => '',        # サークル/出版(読み)
-#            T  => '',        # タイトル
-#            TK => '',        # タイトル(読み)
-#            AT => '',        # ジャンル/属性
-#            AU => '',        # 作家名
-#            CP => '',        # 登場キャラ
-            'CR[]' => [qw(18 15 0)], # 年齢制限 # 18禁 R指定 一般
-#            SQ => '',        # 在庫状況 # blue - 十分, yellow - 在庫少
-#            EV => '',        # イベント
-#            PYear  => '',    # 発行年 (発行日)
-#            PMonth => '',    # 発行月 (発行日)
-#            PDay   => '',    # 発行日 (発行日)
-#            LYear  => '',    # 最終入荷年 (最終入荷日)
-#            LMonth => '',    # 最終入荷月 (最終入荷日)
-#            LDay   => '',    # 最終入荷日 (最終入荷日)
-        }
+            mode => 'search',
+            #search_disp => '',
+            #chara => '',
+            orderby     => 'date', # 並び替え順
+            disp_number => 120, # 表示数
+            pageno      => 1,
+            text_type   => 'circle', # selected : 全て
+                                     # title    : 作品タイトル
+                                     # detail   : 作品詳細
+                                     # circle   : circle
+                                     # author   : 作家名
+                                     # genre    : ジャンル名
+                                     # chara    : キャラ名
+                                     # event    : イベント名
+            #name       => '',
+            'is_end_of_sale%5B%5D' => 1, # 品切れ
+            'is_end_of_sale2'      => 1,
+            'category_ids%5B%5D'   => 1,
+            genre                  => 0,
+            co_name                => '',
+            ci_name                => '', # 絞り込みサークル名
+            sale_date_before       => '',
+            sale_date_after        => '',
+            price_row              => 0,
+            price_high             => 0,
+        };
     },
 );
 
-has is_logged_in => (
-    is  => 'rw',
-    isa => 'Bool',
-    default => sub {0},
-);
-
-
-around 'request' => sub {
-    my($org, $self, @args) = @_;
-
-    if ($self->is_logged_in) {
-        $org->($self, @args);
-    } else {
-        carp qq([DoujinShop::Meta::Melonbooks] try login) if $self->verbose;
-
-        $self->login(sub {
-            my($err, $hdrs) = @_;
-
-            $self->is_logged_in
-                ? $org->($self, @args)
-                : carp qq($err)
-            ;
-        });
-    }
-
-    $self;
-};
-
-sub login {
-    my $self = shift;
-    my $cb; $cb = pop if ref $_[-1] eq 'CODE';
-
-    my $jar  = $self->jar || +{version => 1};
-    my $shop = $self->home . '/shop';
-
-    my %params = (
-        headers => {
-            referer        => "$shop/check_age.php",
-            'content-type' => 'application/x-www-form-urlencoded',
-        },
-        body       => 'RATED=18',
-        cookie_jar => $jar,
-    );
-
-    my $guard;
-    $guard = http_request POST => "$shop/index.php", %params, sub {
-        undef $guard;
-
-        my($body, $hdrs) = @_;
-        my $err;
-
-        if ($hdrs->{URL} eq "$shop/top/main") {
-            $self->is_logged_in(1);
-            $self->jar($jar);
-        }
-
-        else {
-            $self->is_logged_in(0);
-            $err = qq(login error: $hdrs->{Status}: $hdrs->{Reason});
-        }
-
-        $cb->($err, $hdrs) if ref $cb eq 'CODE';
-    };
-
-    $self;
-}
-
-
+use URI::Escape;
 
 sub parse_body {
     my($self, $body) = @_;
-    my $home = $self->home;
+    my $home    = $self->home;
     my $scraper = scraper {
-        #process '/html/body/table/tbody/tr[4]/td[2]/table/tbody/tr[2]/td/div/table/tr', 'trs[]' => scraper {
-        process '/html/body/table/tbody/tr[3]/td[2]/table/tbody/tr[2]/td/div/table/tr', 'trs[]' => scraper {
-            process '//td[2]/table/tr[2]/td/font/a', 'circle' => 'TEXT';
-            process '//td[2]/table/tr[2]/td/font/a', 'urlOfCircle' => sub {
-                my $el = shift;
-                $home . $el->attr('href');
+        process "#container>div>div>div>div>div>div>div>div.product>div.relative", "lis[]" => scraper {
+            process "div.thumb>a", "urlOfTitle" => sub { $home . $_->attr('href'); };
+            process "div.thumb>a", "title" => '@title';
+            process "div.thumb>a>img", "srcOfThumbnail" => sub {
+                my $src = $_->attr('src');
+                $src =~ s/width=(?:\d+)?&height=(?:\d+)?/width=450&height=450/g;
+                "${home}${src}";
             };
-            process '//td[2]/table/tr/td/font',   'title' => 'TEXT';
-            process '//td/table/tr[4]/td/form/a', 'urlOfTitle' => sub {
-                my $el = shift;
-                $home . $el->attr('href');
+            process "div.group>div.title>p.circle", "circle" => 'TEXT';
+            process "div.group>div.title>p.circle>a", "urlOfCircle" => sub {
+                $home . $_->attr('href');
             };
-            process '//td/table/tr[2]/td/div/a', 'srcOfThumbnail' => '@href';
         };
     };
 
-    [ grep { exists $_->{title} } @{$scraper->scrape( $body )->{trs}} ];
+    $scraper->scrape($body)->{lis} || [];
 }
 
+
 sub create_request_params {
-    my $self = shift;
-    my %args = @_;
-    my %defs = %{ $self->default_request_params };
+    my $self   = shift;
+    my %params = $self->_merge_request_params(@_);
+    my $query  = join '&', map {
+        $_ = "$_=" . uri_escape_utf8($params{$_});
+    } keys %params;
+    GET join '?', $self->request_uri, $query;
+}
+
+sub _merge_request_params {
+    my $self   = shift;
+    my %args   = @_;
+    my %params = %{ $self->default_request_params };
 
     for my $key (keys %args) {
-        $defs{$key} = $self->enc()->encode($args{$key});
+        $params{$key} = $args{$key};
     }
 
-    POST $self->request_uri, [ %defs ];
+    %params;
 }
 
 1;

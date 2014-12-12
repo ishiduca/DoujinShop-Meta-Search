@@ -1,5 +1,5 @@
 title: DoujinShop::Meta::Search
-version: v0.033
+version: v0.0400
 css:
   - /static/bower_components/normalize-css/normalize.css
   - /static/bower_components/font-awesome/css/font-awesome.min.css

@@ -3,7 +3,7 @@ use strict;
 use utf8;
 use Carp ();
 
-our $VERSION = '0.02';
+our $VERSION = '0.10';
 
 use parent qw(Tatsumaki::Handler);
 __PACKAGE__->asynchronous(1);
@@ -24,17 +24,17 @@ my %clients = (
 my %validates = (
     zin   => sub { shift eq 'name' },
     tora  => sub { shift =~ /^(mak|nam|act|mch)$/ },
-    melon => sub { shift =~ /^(M|T|AU|CP)$/ },
+    melon => sub { shift =~ /^(circle|title|author|chara)$/ },
 );
 my %adapts = (
     zin   => sub { 'name' },
     tora  => sub { shift },
     melon => sub {
         my $key = shift;
-        $key =~ s/ mak /M/x;
-        $key =~ s/ nam /T/x;
-        $key =~ s/ act /AU/x;
-        $key =~ s/ mch /CP/x;
+		$key =~ s/ mak /circle/x;
+		$key =~ s/ nam /title/x;
+		$key =~ s/ act /author/x;
+		$key =~ s/ mch /chara/x;
 
         $key;
     },
@@ -50,8 +50,7 @@ sub create_params {
         push @ps, $key => $enc->decode($params{$key});
     }
 
-     $service eq 'melon' and push @ps, G => '同人誌';
-     @ps;
+    @ps;
 }
 
 sub get {
@@ -64,7 +63,10 @@ sub get {
         Tatsumaki::Error::HTTP->throw(400);
     }
 
-    my @params = create_params( $service, $key, $val);
+#    my @params = create_params( $service, $key, $val);
+    my @params = $service eq 'melon'
+	           ? create_params( $service, 'text_type' => $key, 'name' => $val )
+			   : create_params( $service, $key, $val );
 
     my $env   = $self->request->env;
     my $memd  = $env->{'psgix.memd'};
@@ -96,18 +98,6 @@ sub on_response {
     if ($err) {
         Carp::carp $err;
         Tatsumaki::Error::HTTP->throw(500);
-    }
-
-    if ($hdr->{URL} =~ m! \/check_age\.php$ !x) {
-        Carp::carp('[DoujinShop::Meta::Melonbooks] session timeout.'
-          . qq(now "$hdr->{URL}" retry login));
-        $clients{melon} = DoujinShop::Meta::Melonbooks->new;
-
-        $clients{melon}->request(@{$params}, $self->async_cb(sub {
-            Carp::carp qq(DoujinShop::Meta::Melonbooks] get response on Re request);
-            $self->on_response($service, $params, @_, $cb);
-        }));
-        return ;
     }
 
     Carp::carp qq([DoujinShop::Meta::*] "$service" send response);

@@ -16,23 +16,30 @@ sub new {
     my %args  = @_;
 
     my %clients = (
-        tora  => DoujinShop::Meta::Toranoana->new(verbose => 1),
+        tora  => DoujinShop::Meta::Toranoana->new( verbose => 1),
+        zin   => DoujinShop::Meta::Comiczin->new(  verbose => 1),
         melon => DoujinShop::Meta::Melonbooks->new(verbose => 1),
-        zin   => DoujinShop::Meta::Comiczin->new(verbose => 1),
     );
 
     my %adaptors = (
-        tora => sub { @_ },
+        tora  => sub { @_ },
+        zin   => sub { my %args = (name => $_[1]) },
         melon => sub {
             my %args = @_;
-            $args{G} = '同人誌';
-            $args{mak} and $args{M}  = delete $args{mak};
-            $args{nam} and $args{T}  = delete $args{nam};
-            $args{act} and $args{AU} = delete $args{act};
-            $args{mch} and $args{CP} = delete $args{mch};
-            %args;
+            my %hash = (
+                mak => 'circle',
+                nam => 'title',
+                act => 'author',
+                mch => 'chara',
+            );
+            for my $key (keys %hash) {
+                if (defined $args{$key}) {
+                    $args{text_type} = $hash{$key};
+                    $args{name}      = delete $args{$key};
+                    return %args;
+                }
+            }
         },
-        zin => sub { my %args = (name => $_[1]) },
     );
 
     bless {
@@ -102,6 +109,7 @@ sub request {
     my($self, $handle, $msg, $service, $index, %qs) = @_;
 
     carp qq([DoujinShop::Meta::*] "$service" request "$index");
+
     $self->{clients}->{$service}->request(%qs => sub {
         my($err, $results, $hdr) = @_;
 
@@ -117,14 +125,6 @@ sub request {
             return carp qq(! [DoujinShop::Meta::*] "$service" ERROR: "$err");
         }
 
-        if ($hdr->{URL} =~ m! /check_age\.php$ !x) {
-            my $client = $self->{clients}{$service}
-                       = DoujinShop::Meta::Melonbooks->new(verbose => 1);
-
-            $self->request($handle, $msg, $service, $index, %qs, $cb);
-            return qq([DoujinShop::Meta::*] "$service" request "$index" retry);
-        }
-
         $handle->send_msg({
             error    => 0,
             service  => $service,
@@ -133,7 +133,6 @@ sub request {
         });
 
         $cb->($results);
-
     });
 }
 
