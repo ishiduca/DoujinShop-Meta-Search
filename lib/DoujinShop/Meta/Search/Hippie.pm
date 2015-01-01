@@ -31,6 +31,7 @@ sub new {
                 nam => 'title',
                 act => 'author',
                 mch => 'chara',
+                gnr => 'genre',
             );
             for my $key (keys %hash) {
                 if (defined $args{$key}) {

@@ -35,6 +35,7 @@ my %adapts = (
 		$key =~ s/ nam /title/x;
 		$key =~ s/ act /author/x;
 		$key =~ s/ mch /chara/x;
+		$key =~ s/ gnr /genre/x;
 
         $key;
     },

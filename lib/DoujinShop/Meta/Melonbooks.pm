@@ -19,9 +19,7 @@ has '+enc'  => (default => sub { find_encoding('utf8') });
 has '+request_uri' => (
     default => sub { shift->home . '/search/search.php' },
 );
-#https://www.melonbooks.co.jp/search/search.php?mode=search&search_disp=&chara=&orderby=date&disp_number=120&pageno=1&text_type=circle&name=xration&is_end_of_sale%5B%5D=1&is_end_of_sale2=1&category_ids%5B%5D=1&genre=0&co_name=&ci_name=&sale_date_before=&sale_date_after=&price_low=0&price_high=0&category=&type=&start=&end=
 
-#https://www.melonbooks.co.jp/search/search.php?mode=search&search_disp=&chara=&orderby=date&disp_number=120&pageno=1&text_type=title&name=%E3%81%AE%E3%82%A8%E3%83%AD%E3%81%84&is_end_of_sale%5B%5D=1&is_end_of_sale2=1&category_ids%5B%5D=1&genre=0&co_name=&ci_name=&sale_date_before=&sale_date_after=&price_low=0&price_high=0&disp_number=120
 has '+default_request_params' => (
     default => sub {
         +{
