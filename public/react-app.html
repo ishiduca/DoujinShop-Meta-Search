@@ -1,0 +1,131 @@
+<!doctype html>
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="/static/bower_components/normalize-css/normalize.css" />
+<link rel="stylesheet" type="text/css" href="/static/bower_components/font-awesome/css/font-awesome.min.css" />
+<style>
+#header {
+    padding-top : 32px;
+}
+#header h1, #header h4 {
+    display : inline-table;
+    margin  : 0;
+    padding : 0 6px;
+    font-family: "Gill Sans", Helvetica, Arial, sans-serif;
+}
+#main {
+    padding-bottom : 200px;
+}
+
+/* main > section > form */
+section > form {
+    position : fixed;
+    top      : 0;
+    left     : 0;
+    width    : 100%;
+    text-align : center;
+    z-index  : 2;
+    padding  : 6px 0;
+}
+section > form > input[type="text"] {
+    min-width: 396px;
+    width: 98%;
+    border: 1px solid #7799bb;
+}
+/* main > section#notify > div#notify-content */
+#notify {
+    position : fixed;
+    top : 30px;
+    left : 0;
+    z-index : 4;
+}
+#notify-content {
+    margin : 12px;
+    padding : 12px;
+    border-radius : 6px;
+}
+.info {
+    background-color: #33ff33;
+}
+.error {
+    background-color: #ffaa77;
+}
+
+.display-off {
+    display : none;
+}
+.display-on {
+    display : block;
+}
+
+#help-content {
+    position : fixed;
+    top : 45px;
+    left : 12px;
+    margin : 12px;
+    padding : 12px;
+    background-color: #ffffaa;
+    border-radius : 6px;
+    z-index : 3;
+}
+
+
+#main-content {
+    width : 100%;
+    text-align : center;
+}
+
+#result,
+#favorites {
+    display : inline-block;
+    width : 48%;
+    min-width : 408px;
+    vertical-align : top;
+    text-align : center;
+}
+
+#result dl {
+    padding : 0;
+    margin : 0;
+}
+#result dt {
+    margin : 0;
+    padding : .5em 0 0 0;
+    font-weight : bold;
+    text-align : left;
+}
+
+.item-content {
+    width : 50%;
+    display : inline-block;
+    padding : 12px 0;
+}
+.item-content img {
+    max-width : 200px;
+    min-width : 180px;
+    float     : left;
+}
+.item-content-rate {
+    clear : both;
+    padding : 3px;
+    text-align : center;
+    cursor : pointer;
+}
+.fa-star, .fa-star-o {
+    color : #33ff33;
+}
+.blink {
+    background-color : #ffff99;
+    border-radius : 3px;
+}
+</style>
+<title></title>
+</head>
+<body>
+<header id="header">
+<h1>DoujinShop::Meta::Search</h1>
+<h4>ver.React</h4>
+</header>
+<main id="main"></main>
+<script src="/static/js/react-app.js"></script>
+</body>

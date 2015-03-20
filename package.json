@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "flux": "^2.0.1",
+    "lodash": "^3.5.0",
+    "printf": "^0.2.1",
+    "react": "^0.12.2"
+  },
+  "devDependencies": {
+    "reactify": "^1.0.0"
+  }
+}
