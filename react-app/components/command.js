@@ -62,6 +62,6 @@ function disabled () {
 function unDisabled () {
     return {
         disabled: ''
-      , placeholder: '> input command'
+      , placeholder: '> input command (ex ":help")'
     }
 }

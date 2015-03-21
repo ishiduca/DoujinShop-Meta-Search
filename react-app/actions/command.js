@@ -13,6 +13,10 @@ module.exports = {
             return dispatcher.dispatch('command.parseError', err)
         }
 
+        if ('help' in data) {
+            return dispatcher.dispatch('help.showHelp')
+        }
+
         apiWebSocket.send(data)
 
         dispatcher.dispatch('ws.send', data)
