@@ -1,18 +1,13 @@
 'use strict'
-var events         = require('events')
-var dispatcher     = require('../dispatcher')
-var StoreWSState = module.exports = new events.EventEmitter
+var events       = require('events')
+var assign       = require('object-assign')
+var dispatcher   = require('../dispatcher')
+var StoreWSState = module.exports = assign({}, events.EventEmitter.prototype)
 
 var isopen = false
 
 StoreWSState.isOpen = function () {
     return isopen
-}
-StoreWSState.open = function () {
-    isopen = true
-}
-StoreWSState.close = function () {
-    isopen = false
 }
 
 StoreWSState.dispatchToken = dispatcher.register(function (payload) {
@@ -20,12 +15,12 @@ StoreWSState.dispatchToken = dispatcher.register(function (payload) {
     var value      = payload.value
 
     if ('ws.onopen' === actionType) {
-        StoreWSState.open()
+        isopen = true
         StoreWSState.emit('change')
     }
 
     if ('ws.onclose' === actionType) {
-        StoreWSState.close()
+        isopen = false
         StoreWSState.emit('change')
     }
 })

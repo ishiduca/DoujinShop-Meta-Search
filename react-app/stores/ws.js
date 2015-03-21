@@ -1,15 +1,13 @@
 'use strict'
 var events         = require('events')
 var lodash         = require('lodash')
+var assign         = require('object-assign')
 var printf         = require('printf')
 var dispatcher     = require('../dispatcher')
-var StoreWebSocket = module.exports = new events.EventEmitter
+var StoreWebSocket = module.exports = assign({}, events.EventEmitter.prototype)
 
 var list = []
 
-StoreWebSocket.push = function (data) {
-    return list.push(data)
-}
 StoreWebSocket.getAll = function () {
     return lodash.cloneDeep(list)
 }
@@ -19,9 +17,8 @@ StoreWebSocket.dispatchToken = dispatcher.register(function (payload) {
     var value      = payload.value
 
     if ('ws.onmessage' === actionType) {
-        if (StoreWebSocket.push(value)) {
-            StoreWebSocket.emit('change')
-        }
+        list.push(value)
+        StoreWebSocket.emit('change')
     }
 
 })

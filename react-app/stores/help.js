@@ -1,7 +1,8 @@
 'use strict'
 var events     = require('events')
+var assign     = require('object-assign')
 var dispatcher = require('../dispatcher')
-var StoreHelp  = module.exports = new events.EventEmitter
+var StoreHelp  = module.exports = assign({}, events.EventEmitter.prototype)
 
 var flg = false
 
